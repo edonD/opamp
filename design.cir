@@ -84,6 +84,14 @@ meas dc vout_max max v(out)
 let swing = vout_max - vout_min
 echo "RESULT_SWING" $&swing
 
+* CMRR: switch to common-mode and re-run AC
+alter @Vinp[mag] = 0.5
+alter @Vinm[mag] = 0.5
+ac dec 200 1 1G
+meas ac cm_gain_db find vdb(out) at=10
+let cmrr_val = dc_gain_db - cm_gain_db
+echo "RESULT_CMRR_DB" $&cmrr_val
+
 echo "RESULT_DONE"
 quit
 .endc
