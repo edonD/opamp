@@ -141,6 +141,14 @@ def run_simulation(template: str, param_values: Dict[str, float],
                 "output_tail": output[-500:]}
 
     measurements = parse_ngspice_output(output)
+
+    # Compute CMRR from individual gains if not already present
+    if "RESULT_CMRR_DB" not in measurements:
+        dc_g = measurements.get("dc_gain_db")
+        cm_g = measurements.get("cm_gain_db")
+        if dc_g is not None and cm_g is not None and dc_g != cm_g:
+            measurements["RESULT_CMRR_DB"] = dc_g - cm_g
+
     return {"idx": idx, "error": None, "measurements": measurements}
 
 
