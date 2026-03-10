@@ -100,7 +100,7 @@ let saved_dc_gain = dc_gain_db
 * CMRR: switch to common-mode and re-run AC
 alter @Vinp[mag] = 0.5
 alter @Vinm[mag] = 0.5
-alter @Vinm[phase] = 0
+alter @Vinm[acphase] = 0
 ac dec 200 1 1G
 meas ac cm_gain_db find vdb(out) at=10
 let cmrr_val = saved_dc_gain - cm_gain_db
@@ -109,7 +109,7 @@ echo "RESULT_CMRR_DB" $&cmrr_val
 * Restore differential for DC sweep
 alter @Vinp[mag] = 0.5
 alter @Vinm[mag] = 0.5
-alter @Vinm[phase] = 180
+alter @Vinm[acphase] = 180
 alter @Vinp[dc] = 0
 alter @Vinm[dc] = 0
 
