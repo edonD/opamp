@@ -522,7 +522,7 @@ ac dec 200 1 1G
 wrdata {ac_file} vdb(out) vp(out)
 
 * DC sweep for output swing
-dc Vinp -14 14 0.01
+dc Vdiff -14 14 0.01
 wrdata {dc_file} v(out)
 
 quit
