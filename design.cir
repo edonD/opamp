@@ -1,9 +1,9 @@
-* High-Performance Op-Amp — Two-Stage + Class-AB Push-Pull Output
+* High-Performance Op-Amp — Folded-Cascode + Class-AB Push-Pull Output
 * ±15V dual supply, 600Ω load
 * All component values optimized by DE. Do not hardcode values.
 *
 * Architecture:
-*   Stage 1: PMOS diff pair + NMOS mirror load (high gain into high-Z)
+*   Stage 1: PMOS diff pair folded into NMOS cascode (high gain, high Rout)
 *   Stage 2: Split complementary CS amps driving output gates
 *     - M6a (NMOS CS): drives gp (PMOS output gate)
 *     - M6b (PMOS CS): drives gn (NMOS output gate)
@@ -20,12 +20,23 @@ Vcm cm_sig 0 DC 0 AC 0
 Einp inp 0 POLY(2) diff_sig 0 cm_sig 0 0 1 1
 Einm inm 0 POLY(2) diff_sig 0 cm_sig 0 0 -1 1
 
-* ===== First stage: PMOS diff pair + NMOS mirror =====
+* ===== First stage: PMOS diff pair + folded cascode =====
+* PMOS differential pair
 M1 d1 inp tail vdd PMOS W={W1}u L={L1}u
 M2 d2 inm tail vdd PMOS W={W1}u L={L1}u
-M3 d1 d1 vss vss NMOS W={W3}u L={L3}u
-M4 d2 d1 vss vss NMOS W={W3}u L={L3}u
 M5 tail pbias vdd vdd PMOS W={W5}u L={L5}u
+
+* NMOS folded cascode transistors
+Mfc1 d1 ncasc src1 vss NMOS W={Wfc}u L={Lfc}u
+Mfc2 d2 ncasc src2 vss NMOS W={Wfc}u L={Lfc}u
+
+* NMOS current sources (folding currents)
+Mcs1 src1 nbias1 vss vss NMOS W={Wcs}u L={Lcs}u
+Mcs2 src2 nbias1 vss vss NMOS W={Wcs}u L={Lcs}u
+
+* PMOS cascode load (active current mirror with cascode)
+M3 d1 d1 vdd vdd PMOS W={W3}u L={L3}u
+M4 d2 d1 vdd vdd PMOS W={W3}u L={L3}u
 
 * ===== Second stage A: NMOS CS drives PMOS output gate =====
 M6a gp d2 vss vss NMOS W={W6a}u L={L6a}u
@@ -54,9 +65,15 @@ Mbias1 pbias pbias vdd vdd PMOS W={Wbias1}u L={Lbias1}u
 * PMOS current source bias (for M8a load)
 Ibias2 pbias2 vss {Ibias2}
 Mbias2 pbias2 pbias2 vdd vdd PMOS W={Wbias2}u L={Lbias2}u
-* NMOS current source bias (for M8b load)
-Ibias3 vdd nbias3 {Ibias3}
-Mbias3 nbias3 nbias3 vss vss NMOS W={Wbias3}u L={Lbias3}u
+* NMOS current source bias (for M8b load and folding current sources)
+Ibias3 vdd nbias1 {Ibias3}
+Mbias3 nbias1 nbias1 vss vss NMOS W={Wbias3}u L={Lbias3}u
+* NMOS cascode bias
+Ibias4 vdd ncasc {Ibias4}
+Mbias4 ncasc ncasc vss vss NMOS W={Wbias4}u L={Lbias4}u
+* NMOS bias for M8b
+Ibias5 vdd nbias3 {Ibias5}
+Mbias5 nbias3 nbias3 vss vss NMOS W={Wbias5}u L={Lbias5}u
 
 * ===== Load =====
 RL out 0 600

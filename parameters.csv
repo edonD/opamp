@@ -5,6 +5,10 @@ W3,1,500,log
 L3,0.5,10,log
 W5,1,500,log
 L5,0.5,10,log
+Wfc,1,500,log
+Lfc,0.5,10,log
+Wcs,1,500,log
+Lcs,0.5,10,log
 W6a,1,500,log
 L6a,0.5,10,log
 W8a,1,500,log
@@ -30,3 +34,9 @@ Lbias2,0.5,10,log
 Ibias3,10e-6,5e-3,log
 Wbias3,1,500,log
 Lbias3,0.5,10,log
+Ibias4,10e-6,5e-3,log
+Wbias4,1,500,log
+Lbias4,0.5,10,log
+Ibias5,10e-6,5e-3,log
+Wbias5,1,500,log
+Lbias5,0.5,10,log
