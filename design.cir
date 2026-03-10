@@ -1,4 +1,4 @@
-* High-Performance Op-Amp — Cascode Two-Stage Miller OTA
+* High-Performance Op-Amp — Three-Stage with Class-AB Output
 * ±15V dual supply, 600Ω load
 * All component values optimized by DE. Do not hardcode values.
 
@@ -7,7 +7,6 @@ Vdd vdd 0 DC 15
 Vss vss 0 DC -15
 
 * ===== Input signal sources =====
-* Vdiff drives differential, Vcm drives common-mode (for CMRR test)
 Vdiff diff_sig 0 DC 0 AC 0.5
 Vcm cm_sig 0 DC 0 AC 0
 
@@ -15,43 +14,42 @@ Vcm cm_sig 0 DC 0 AC 0
 Einp inp 0 POLY(2) diff_sig 0 cm_sig 0 0 1 1
 Einm inm 0 POLY(2) diff_sig 0 cm_sig 0 0 -1 1
 
-* ===== First stage: Cascode NMOS diff pair + Cascode PMOS active load =====
-* Diff pair
-M1 s1 inp tail vss NMOS W={W1}u L={L1}u
-M2 s2 inm tail vss NMOS W={W1}u L={L1}u
-* NMOS cascodes
-M1c d1 ncasp s1 vss NMOS W={W1c}u L={L1c}u
-M2c d2 ncasp s2 vss NMOS W={W1c}u L={L1c}u
-* PMOS active load
-M3 d1 d1 sp3 vdd PMOS W={W3}u L={L3}u
-M4 d2 d1 sp4 vdd PMOS W={W3}u L={L3}u
-* PMOS cascodes
-M3c sp3 pcasp vdd vdd PMOS W={W3c}u L={L3c}u
-M4c sp4 pcasp vdd vdd PMOS W={W3c}u L={L3c}u
-* Tail current source
-M5 tail nbias vss vss NMOS W={W5}u L={L5}u
+* ===== First stage: PMOS diff pair + NMOS cascode mirror load =====
+* PMOS diff pair (PMOS input for better CMRR with NMOS tail)
+M1 d1 inp tail vdd PMOS W={W1}u L={L1}u
+M2 d2 inm tail vdd PMOS W={W1}u L={L1}u
+* NMOS active load (current mirror)
+M3 d1 d1 vss vss NMOS W={W3}u L={L3}u
+M4 d2 d1 vss vss NMOS W={W3}u L={L3}u
+* PMOS tail current source
+M5 tail pbias vdd vdd PMOS W={W5}u L={L5}u
 
-* ===== Second stage: common-source amplifier =====
-M6 out d2 vdd vdd PMOS W={W6}u L={L6}u
-M7 out nbias2 vss vss NMOS W={W7}u L={L7}u
+* ===== Second stage: common-source gain =====
+M6 d6 d2 vdd vdd PMOS W={W6}u L={L6}u
+M8 d6 nbias vss vss NMOS W={W8}u L={L8}u
 
-* ===== Miller compensation =====
-Cc d2 comp {Cc}
-Rc comp out {Rc}
+* ===== Third stage: Class-AB push-pull output =====
+M9 out d6 vdd vdd PMOS W={W9}u L={L9}u
+M10 out nbias2 vss vss NMOS W={W10}u L={L10}u
+
+* ===== Compensation =====
+* Inner Miller (stage 2 to stage 1 output)
+Cc1 d2 comp1 {Cc1}
+Rc1 comp1 d6 {Rc1}
+* Outer Miller (stage 3 to stage 2 output)
+Cc2 d6 comp2 {Cc2}
+Rc2 comp2 out {Rc2}
 
 * ===== Bias generation =====
-Ibias vdd nbias {Ibias}
-Mbias nbias nbias vss vss NMOS W={Wbias}u L={Lbias}u
-Ibias2 vdd nbias2 {Ibias2}
-Mbias2 nbias2 nbias2 vss vss NMOS W={Wbias2}u L={Lbias2}u
-
-* Cascode bias: NMOS cascode gate
-Ibias3 vdd ncasp {Ibias3}
-Mbias3 ncasp ncasp vss vss NMOS W={Wbias3}u L={Lbias3}u
-
-* Cascode bias: PMOS cascode gate
-Ibias4 pcasp vss {Ibias4}
-Mbias4 pcasp pcasp vdd vdd PMOS W={Wbias4}u L={Lbias4}u
+* PMOS tail bias
+Ibias1 pbias vss {Ibias1}
+Mbias1 pbias pbias vdd vdd PMOS W={Wbias1}u L={Lbias1}u
+* NMOS current source bias (stage 2)
+Ibias2 vdd nbias {Ibias2}
+Mbias2 nbias nbias vss vss NMOS W={Wbias2}u L={Lbias2}u
+* NMOS current source bias (stage 3 output)
+Ibias3 vdd nbias2 {Ibias3}
+Mbias3 nbias2 nbias2 vss vss NMOS W={Wbias3}u L={Lbias3}u
 
 * ===== Load =====
 RL out 0 600
@@ -68,13 +66,15 @@ op
 
 * Bias checks
 let vgs1 = v(inp) - v(tail)
-let vds1 = v(s1) - v(tail)
-let vgs5 = v(nbias) - v(vss)
-let vds5 = v(tail) - v(vss)
+let vds1 = v(d1) - v(tail)
+let vgs5 = v(pbias) - v(vdd)
+let vds5 = v(tail) - v(vdd)
 let vgs6 = v(d2) - v(vdd)
-let vds6 = v(out) - v(vdd)
-let vgs7 = v(nbias2) - v(vss)
-let vds7 = v(out) - v(vss)
+let vds6 = v(d6) - v(vdd)
+let vgs9 = v(d6) - v(vdd)
+let vds9 = v(out) - v(vdd)
+let vgs10 = v(nbias2) - v(vss)
+let vds10 = v(out) - v(vss)
 
 echo "RESULT_VGS1" $&vgs1
 echo "RESULT_VDS1" $&vds1
@@ -82,8 +82,8 @@ echo "RESULT_VGS5" $&vgs5
 echo "RESULT_VDS5" $&vds5
 echo "RESULT_VGS6" $&vgs6
 echo "RESULT_VDS6" $&vds6
-echo "RESULT_VGS7" $&vgs7
-echo "RESULT_VDS7" $&vds7
+echo "RESULT_VGS7" $&vgs10
+echo "RESULT_VDS7" $&vds10
 
 * Power
 let pwr_mw = (abs(i(Vdd)) + abs(i(Vss))) * 15 * 1000
