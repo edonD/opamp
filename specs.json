@@ -1,0 +1,46 @@
+{
+  "name": "High-Performance Audio Op-Amp (LM4562-class)",
+  "reference": "TI LM4562",
+  "supply_v": 15,
+  "supply_type": "dual",
+  "load_r": 600,
+  "load_c_pf": 100,
+  "measurements": {
+    "dc_gain_db": {
+      "target": ">100",
+      "weight": 20,
+      "unit": "dB",
+      "description": "Open-loop DC gain"
+    },
+    "gbw_hz": {
+      "target": ">10e6",
+      "weight": 20,
+      "unit": "Hz",
+      "description": "Gain-bandwidth product"
+    },
+    "phase_margin_deg": {
+      "target": ">60",
+      "weight": 20,
+      "unit": "deg",
+      "description": "Phase margin at unity-gain crossover"
+    },
+    "power_mw": {
+      "target": "<500",
+      "weight": 15,
+      "unit": "mW",
+      "description": "Total quiescent power dissipation"
+    },
+    "output_swing_v": {
+      "target": ">24",
+      "weight": 15,
+      "unit": "V",
+      "description": "Peak-to-peak output voltage swing"
+    },
+    "cmrr_db": {
+      "target": ">80",
+      "weight": 10,
+      "unit": "dB",
+      "description": "Common-mode rejection ratio at DC"
+    }
+  }
+}

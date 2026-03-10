@@ -1,0 +1,91 @@
+* High-Performance Op-Amp — Two-Stage Miller OTA
+* ±15V dual supply, 600Ω load
+* All component values optimized by DE. Do not hardcode values.
+
+* ===== Supply =====
+Vdd vdd 0 DC 15
+Vss vss 0 DC -15
+
+* ===== Input =====
+Vinp inp 0 DC 0 AC 0.5
+Vinm inm 0 DC 0 AC -0.5
+
+* ===== First stage: NMOS differential pair + PMOS active load =====
+M1 d1 inp tail vss NMOS W={W1}u L={L1}u
+M2 d2 inm tail vss NMOS W={W1}u L={L1}u
+M3 d1 d1 vdd vdd PMOS W={W3}u L={L3}u
+M4 d2 d1 vdd vdd PMOS W={W3}u L={L3}u
+M5 tail nbias vss vss NMOS W={W5}u L={L5}u
+
+* ===== Second stage: common-source amplifier =====
+M6 out d2 vdd vdd PMOS W={W6}u L={L6}u
+M7 out nbias2 vss vss NMOS W={W7}u L={L7}u
+
+* ===== Miller compensation =====
+Cc d2 comp {Cc}
+Rc comp out {Rc}
+
+* ===== Bias generation =====
+Ibias vdd nbias {Ibias}
+Mbias nbias nbias vss vss NMOS W={Wbias}u L={Lbias}u
+Ibias2 vdd nbias2 {Ibias2}
+Mbias2 nbias2 nbias2 vss vss NMOS W={Wbias2}u L={Lbias2}u
+
+* ===== Load =====
+RL out 0 600
+CL out 0 100p
+
+* ===== Models (Level 1 CMOS) =====
+.model NMOS NMOS (LEVEL=1 VTO=0.7 KP=110u GAMMA=0.4 LAMBDA=0.04 PHI=0.65 TOX=9e-9)
+.model PMOS PMOS (LEVEL=1 VTO=-0.7 KP=50u GAMMA=0.57 LAMBDA=0.05 PHI=0.65 TOX=9e-9)
+
+* ===== Analysis =====
+.control
+* Operating point
+op
+
+* Bias checks: all transistors should be in saturation
+let vgs1 = v(inp) - v(tail)
+let vds1 = v(d1) - v(tail)
+let vgs5 = v(nbias) - v(vss)
+let vds5 = v(tail) - v(vss)
+let vgs6 = v(d2) - v(vdd)
+let vds6 = v(out) - v(vdd)
+let vgs7 = v(nbias2) - v(vss)
+let vds7 = v(out) - v(vss)
+
+echo "RESULT_VGS1" $&vgs1
+echo "RESULT_VDS1" $&vds1
+echo "RESULT_VGS5" $&vgs5
+echo "RESULT_VDS5" $&vds5
+echo "RESULT_VGS6" $&vgs6
+echo "RESULT_VDS6" $&vds6
+echo "RESULT_VGS7" $&vgs7
+echo "RESULT_VDS7" $&vds7
+
+* Power
+let pwr_mw = (abs(i(Vdd)) + abs(i(Vss))) * 15 * 1000
+echo "RESULT_POWER_MW" $&pwr_mw
+
+* AC analysis (differential)
+ac dec 200 1 1G
+
+meas ac dc_gain_db find vdb(out) at=10
+meas ac gbw_hz when vdb(out)=0 fall=1
+meas ac phase_at_gbw find vp(out) at=$&gbw_hz
+
+let phase_margin = 180 + phase_at_gbw
+echo "RESULT_PHASE_MARGIN" $&phase_margin
+
+* DC sweep for output swing
+dc Vinp -14 14 0.05
+meas dc vout_min min v(out)
+meas dc vout_max max v(out)
+let swing = vout_max - vout_min
+echo "RESULT_SWING" $&swing
+
+echo "RESULT_DONE"
+quit
+.endc
+
+.end
