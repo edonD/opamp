@@ -1,6 +1,13 @@
-* High-Performance Op-Amp — Three-Stage with Class-AB Output
+* High-Performance Op-Amp — Two-Stage + Class-AB Push-Pull Output
 * ±15V dual supply, 600Ω load
 * All component values optimized by DE. Do not hardcode values.
+*
+* Architecture:
+*   Stage 1: PMOS diff pair + NMOS mirror load (high gain into high-Z)
+*   Stage 2: Split complementary CS amps driving output gates
+*     - M6a (NMOS CS): drives gp (PMOS output gate)
+*     - M6b (PMOS CS): drives gn (NMOS output gate)
+*   Output: Class-AB push-pull (M9 PMOS + M10 NMOS)
 
 * ===== Supply =====
 Vdd vdd 0 DC 15
@@ -10,46 +17,46 @@ Vss vss 0 DC -15
 Vdiff diff_sig 0 DC 0 AC 0.5
 Vcm cm_sig 0 DC 0 AC 0
 
-* Input summing network: inp = diff + cm, inm = -diff + cm
 Einp inp 0 POLY(2) diff_sig 0 cm_sig 0 0 1 1
 Einm inm 0 POLY(2) diff_sig 0 cm_sig 0 0 -1 1
 
-* ===== First stage: PMOS diff pair + NMOS cascode mirror load =====
-* PMOS diff pair (PMOS input for better CMRR with NMOS tail)
+* ===== First stage: PMOS diff pair + NMOS mirror =====
 M1 d1 inp tail vdd PMOS W={W1}u L={L1}u
 M2 d2 inm tail vdd PMOS W={W1}u L={L1}u
-* NMOS active load (current mirror)
 M3 d1 d1 vss vss NMOS W={W3}u L={L3}u
 M4 d2 d1 vss vss NMOS W={W3}u L={L3}u
-* PMOS tail current source
 M5 tail pbias vdd vdd PMOS W={W5}u L={L5}u
 
-* ===== Second stage: common-source gain =====
-M6 d6 d2 vdd vdd PMOS W={W6}u L={L6}u
-M8 d6 nbias vss vss NMOS W={W8}u L={L8}u
+* ===== Second stage A: NMOS CS drives PMOS output gate =====
+M6a gp d2 vss vss NMOS W={W6a}u L={L6a}u
+M8a gp pbias2 vdd vdd PMOS W={W8a}u L={L8a}u
 
-* ===== Third stage: Class-AB push-pull output =====
-M9 out d6 vdd vdd PMOS W={W9}u L={L9}u
-M10 out nbias2 vss vss NMOS W={W10}u L={L10}u
+* ===== Second stage B: PMOS CS drives NMOS output gate =====
+M6b gn d2 vdd vdd PMOS W={W6b}u L={L6b}u
+M8b gn nbias3 vss vss NMOS W={W8b}u L={L8b}u
 
-* ===== Compensation =====
-* Inner Miller (stage 2 to stage 1 output)
-Cc1 d2 comp1 {Cc1}
-Rc1 comp1 d6 {Rc1}
-* Outer Miller (stage 3 to stage 2 output)
-Cc2 d6 comp2 {Cc2}
+* ===== Class-AB output stage =====
+M9 out gp vdd vdd PMOS W={W9}u L={L9}u
+M10 out gn vss vss NMOS W={W10}u L={L10}u
+
+* ===== Miller compensation =====
+* From output to stage 2A (gp node)
+Cc1 gp comp1 {Cc1}
+Rc1 comp1 out {Rc1}
+* From output to stage 2B (gn node)
+Cc2 gn comp2 {Cc2}
 Rc2 comp2 out {Rc2}
 
 * ===== Bias generation =====
-* PMOS tail bias
+* PMOS tail current for diff pair
 Ibias1 pbias vss {Ibias1}
 Mbias1 pbias pbias vdd vdd PMOS W={Wbias1}u L={Lbias1}u
-* NMOS current source bias (stage 2)
-Ibias2 vdd nbias {Ibias2}
-Mbias2 nbias nbias vss vss NMOS W={Wbias2}u L={Lbias2}u
-* NMOS current source bias (stage 3 output)
-Ibias3 vdd nbias2 {Ibias3}
-Mbias3 nbias2 nbias2 vss vss NMOS W={Wbias3}u L={Lbias3}u
+* PMOS current source bias (for M8a load)
+Ibias2 pbias2 vss {Ibias2}
+Mbias2 pbias2 pbias2 vdd vdd PMOS W={Wbias2}u L={Lbias2}u
+* NMOS current source bias (for M8b load)
+Ibias3 vdd nbias3 {Ibias3}
+Mbias3 nbias3 nbias3 vss vss NMOS W={Wbias3}u L={Lbias3}u
 
 * ===== Load =====
 RL out 0 600
@@ -69,12 +76,10 @@ let vgs1 = v(inp) - v(tail)
 let vds1 = v(d1) - v(tail)
 let vgs5 = v(pbias) - v(vdd)
 let vds5 = v(tail) - v(vdd)
-let vgs6 = v(d2) - v(vdd)
-let vds6 = v(d6) - v(vdd)
-let vgs9 = v(d6) - v(vdd)
-let vds9 = v(out) - v(vdd)
-let vgs10 = v(nbias2) - v(vss)
-let vds10 = v(out) - v(vss)
+let vgs6 = v(d2) - v(vss)
+let vds6 = v(gp) - v(vss)
+let vgs7 = v(gn) - v(vss)
+let vds7 = v(out) - v(vss)
 
 echo "RESULT_VGS1" $&vgs1
 echo "RESULT_VDS1" $&vds1
@@ -82,14 +87,14 @@ echo "RESULT_VGS5" $&vgs5
 echo "RESULT_VDS5" $&vds5
 echo "RESULT_VGS6" $&vgs6
 echo "RESULT_VDS6" $&vds6
-echo "RESULT_VGS7" $&vgs10
-echo "RESULT_VDS7" $&vds10
+echo "RESULT_VGS7" $&vgs7
+echo "RESULT_VDS7" $&vds7
 
 * Power
 let pwr_mw = (abs(i(Vdd)) + abs(i(Vss))) * 15 * 1000
 echo "RESULT_POWER_MW" $&pwr_mw
 
-* AC analysis (differential: Vdiff=0.5, Vcm=0)
+* AC analysis (differential)
 ac dec 200 1 1G
 
 meas ac dc_gain_db find vdb(out) at=10
@@ -102,7 +107,7 @@ echo "RESULT_PHASE_MARGIN" $&phase_margin
 * Save DC gain for CMRR
 set saved_dc_gain = "$&dc_gain_db"
 
-* CMRR: switch to common-mode (Vdiff=0, Vcm=0.5)
+* CMRR: switch to common-mode
 alter @Vdiff[acmag] = 0
 alter @Vcm[acmag] = 0.5
 ac dec 200 1 1G
