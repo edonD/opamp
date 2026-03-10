@@ -1,9 +1,9 @@
-* High-Performance Op-Amp — Two-Stage + Class-AB Push-Pull Output
+* High-Performance Op-Amp — Cascode Mirror + Class-AB Push-Pull Output
 * ±15V dual supply, 600Ω load
 * All component values optimized by DE. Do not hardcode values.
 *
 * Architecture:
-*   Stage 1: NMOS diff pair + PMOS mirror load (higher gm for better GBW)
+*   Stage 1: PMOS diff pair + cascode NMOS mirror load (higher Rout)
 *   Stage 2: Split complementary CS amps driving output gates
 *     - M6a (NMOS CS): drives gp (PMOS output gate)
 *     - M6b (PMOS CS): drives gn (NMOS output gate)
@@ -20,12 +20,15 @@ Vcm cm_sig 0 DC 0 AC 0
 Einp inp 0 POLY(2) diff_sig 0 cm_sig 0 0 1 1
 Einm inm 0 POLY(2) diff_sig 0 cm_sig 0 0 -1 1
 
-* ===== First stage: NMOS diff pair + PMOS mirror =====
-M1 d1 inp tail vss NMOS W={W1}u L={L1}u
-M2 d2 inm tail vss NMOS W={W1}u L={L1}u
-M3 d1 d1 vdd vdd PMOS W={W3}u L={L3}u
-M4 d2 d1 vdd vdd PMOS W={W3}u L={L3}u
-M5 tail nbias vss vss NMOS W={W5}u L={L5}u
+* ===== First stage: PMOS diff pair + cascode NMOS mirror =====
+M1 d1 inp tail vdd PMOS W={W1}u L={L1}u
+M2 d2 inm tail vdd PMOS W={W1}u L={L1}u
+* Cascode NMOS mirror: M3a/M4a bottom (current-setting), M3/M4 top (cascode)
+M3a s3a s3a vss vss NMOS W={W3}u L={L3}u
+M4a s4a s3a vss vss NMOS W={W3}u L={L3}u
+M3 d1 ncasc s3a vss NMOS W={Wc}u L={Lc}u
+M4 d2 ncasc s4a vss NMOS W={Wc}u L={Lc}u
+M5 tail pbias vdd vdd PMOS W={W5}u L={L5}u
 
 * ===== Second stage A: NMOS CS drives PMOS output gate =====
 M6a gp d2 vss vss NMOS W={W6a}u L={L6a}u
@@ -48,15 +51,18 @@ Cc2 gn comp2 {Cc2}
 Rc2 comp2 out {Rc2}
 
 * ===== Bias generation =====
-* NMOS tail current for diff pair
-Ibias1 vdd nbias {Ibias1}
-Mbias1 nbias nbias vss vss NMOS W={Wbias1}u L={Lbias1}u
+* PMOS tail current for diff pair
+Ibias1 pbias vss {Ibias1}
+Mbias1 pbias pbias vdd vdd PMOS W={Wbias1}u L={Lbias1}u
 * PMOS current source bias (for M8a load)
 Ibias2 pbias2 vss {Ibias2}
 Mbias2 pbias2 pbias2 vdd vdd PMOS W={Wbias2}u L={Lbias2}u
 * NMOS current source bias (for M8b load)
 Ibias3 vdd nbias3 {Ibias3}
 Mbias3 nbias3 nbias3 vss vss NMOS W={Wbias3}u L={Lbias3}u
+* NMOS cascode bias
+Ibias4 vdd ncasc {Ibias4}
+Mbias4 ncasc ncasc vss vss NMOS W={Wbias4}u L={Lbias4}u
 
 * ===== Load =====
 RL out 0 600
@@ -74,8 +80,8 @@ op
 * Bias checks
 let vgs1 = v(inp) - v(tail)
 let vds1 = v(d1) - v(tail)
-let vgs5 = v(nbias) - v(vss)
-let vds5 = v(tail) - v(vss)
+let vgs5 = v(pbias) - v(vdd)
+let vds5 = v(tail) - v(vdd)
 let vgs6 = v(d2) - v(vss)
 let vds6 = v(gp) - v(vss)
 let vgs7 = v(gn) - v(vss)
