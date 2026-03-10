@@ -1,4 +1,4 @@
-* High-Performance Op-Amp — Two-Stage Miller OTA
+* High-Performance Op-Amp — Cascode Two-Stage Miller OTA
 * ±15V dual supply, 600Ω load
 * All component values optimized by DE. Do not hardcode values.
 
@@ -10,11 +10,20 @@ Vss vss 0 DC -15
 Vinp inp 0 DC 0 AC 0.5
 Vinm inm 0 DC 0 AC -0.5
 
-* ===== First stage: NMOS differential pair + PMOS active load =====
-M1 d1 inp tail vss NMOS W={W1}u L={L1}u
-M2 d2 inm tail vss NMOS W={W1}u L={L1}u
-M3 d1 d1 vdd vdd PMOS W={W3}u L={L3}u
-M4 d2 d1 vdd vdd PMOS W={W3}u L={L3}u
+* ===== First stage: Cascode NMOS diff pair + Cascode PMOS active load =====
+* Diff pair
+M1 s1 inp tail vss NMOS W={W1}u L={L1}u
+M2 s2 inm tail vss NMOS W={W1}u L={L1}u
+* NMOS cascodes
+M1c d1 ncasp s1 vss NMOS W={W1c}u L={L1c}u
+M2c d2 ncasp s2 vss NMOS W={W1c}u L={L1c}u
+* PMOS active load
+M3 d1 d1 sp3 vdd PMOS W={W3}u L={L3}u
+M4 d2 d1 sp4 vdd PMOS W={W3}u L={L3}u
+* PMOS cascodes
+M3c sp3 pcasp vdd vdd PMOS W={W3c}u L={L3c}u
+M4c sp4 pcasp vdd vdd PMOS W={W3c}u L={L3c}u
+* Tail current source
 M5 tail nbias vss vss NMOS W={W5}u L={L5}u
 
 * ===== Second stage: common-source amplifier =====
@@ -31,6 +40,14 @@ Mbias nbias nbias vss vss NMOS W={Wbias}u L={Lbias}u
 Ibias2 vdd nbias2 {Ibias2}
 Mbias2 nbias2 nbias2 vss vss NMOS W={Wbias2}u L={Lbias2}u
 
+* Cascode bias: NMOS cascode gate
+Ibias3 vdd ncasp {Ibias3}
+Mbias3 ncasp ncasp vss vss NMOS W={Wbias3}u L={Lbias3}u
+
+* Cascode bias: PMOS cascode gate
+Ibias4 pcasp vss {Ibias4}
+Mbias4 pcasp pcasp vdd vdd PMOS W={Wbias4}u L={Lbias4}u
+
 * ===== Load =====
 RL out 0 600
 CL out 0 100p
@@ -44,9 +61,9 @@ CL out 0 100p
 * Operating point
 op
 
-* Bias checks: all transistors should be in saturation
+* Bias checks
 let vgs1 = v(inp) - v(tail)
-let vds1 = v(d1) - v(tail)
+let vds1 = v(s1) - v(tail)
 let vgs5 = v(nbias) - v(vss)
 let vds5 = v(tail) - v(vss)
 let vgs6 = v(d2) - v(vdd)
@@ -77,20 +94,29 @@ meas ac phase_at_gbw find vp(out) at=$&gbw_hz
 let phase_margin = 180 + phase_at_gbw
 echo "RESULT_PHASE_MARGIN" $&phase_margin
 
-* DC sweep for output swing
-dc Vinp -14 14 0.05
-meas dc vout_min min v(out)
-meas dc vout_max max v(out)
-let swing = vout_max - vout_min
-echo "RESULT_SWING" $&swing
+* Save DC gain for CMRR calculation
+let saved_dc_gain = dc_gain_db
 
 * CMRR: switch to common-mode and re-run AC
 alter @Vinp[mag] = 0.5
 alter @Vinm[mag] = 0.5
 ac dec 200 1 1G
 meas ac cm_gain_db find vdb(out) at=10
-let cmrr_val = dc_gain_db - cm_gain_db
+let cmrr_val = saved_dc_gain - cm_gain_db
 echo "RESULT_CMRR_DB" $&cmrr_val
+
+* Restore differential for DC sweep
+alter @Vinp[mag] = 0.5
+alter @Vinm[mag] = -0.5
+alter @Vinp[dc] = 0
+alter @Vinm[dc] = 0
+
+* DC sweep for output swing
+dc Vinp -14 14 0.05
+meas dc vout_min min v(out)
+meas dc vout_max max v(out)
+let swing = vout_max - vout_min
+echo "RESULT_SWING" $&swing
 
 echo "RESULT_DONE"
 quit
