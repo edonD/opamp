@@ -1,1 +1,2 @@
 commit	score	topology	specs_met	description
+31295f2	1.00	class-AB-push-pull	6/6	Split complementary 2nd stage + class-AB output: 169dB gain, 25.9MHz GBW, 29.5V swing, 203mW, 168dB CMRR
