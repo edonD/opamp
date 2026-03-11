@@ -4,3 +4,4 @@ commit	score	topology	specs_met	description
 8877ca3	1.00	class-AB-push-pull	6/6	Re-run 3: 179dB gain, 23MHz GBW, 29.4V swing, 248mW, 180dB CMRR
 99e7fe7	1.00	NMOS-input-class-AB	6/6	NMOS diff pair: 162dB gain, 33.6MHz GBW, 27.4V swing, 321mW, 180dB CMRR
 bfa554c	1.00	cascode-mirror-class-AB	6/6	Cascode NMOS mirror: 173dB gain, 24.3MHz GBW, 29V swing, 223mW, 178dB CMRR
+a4c5330	1.00	class-AB-push-pull	6/6	Run 4: 180dB gain, 23.5MHz GBW, 29.5V swing, 263mW, 180dB CMRR
