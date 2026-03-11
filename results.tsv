@@ -6,3 +6,4 @@ commit	score	topology	specs_met	description
 bfa554c	1.00	cascode-mirror-class-AB	6/6	Cascode NMOS mirror: 173dB gain, 24.3MHz GBW, 29V swing, 223mW, 178dB CMRR
 a4c5330	1.00	class-AB-push-pull	6/6	Run 4: 180dB gain, 23.5MHz GBW, 29.5V swing, 263mW, 180dB CMRR
 9eac376	0.68	BJT-input-class-AB	4/6	BJT NPN input pair: metric ~94.6, killed early — worse than MOSFET (292)
+bc47a44	1.00	three-stage-nested-Miller	6/6	Three-stage: 133dB gain, 26.3MHz GBW, 25.2V swing, 342mW, 129dB CMRR
