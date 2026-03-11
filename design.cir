@@ -1,13 +1,13 @@
-* High-Performance Op-Amp — Three-Stage Nested Miller + Class-AB Output
+* High-Performance Op-Amp — Two-Stage + Class-AB Push-Pull Output
 * ±15V dual supply, 600Ω load
 * All component values optimized by DE. Do not hardcode values.
 *
 * Architecture:
-*   Stage 1: PMOS diff pair + NMOS mirror load
-*   Stage 2: NMOS common-source gain stage with PMOS load
-*   Stage 3: Split complementary CS amps driving class-AB output gates
-*   Output: Class-AB push-pull (M11 PMOS + M12 NMOS)
-*   Compensation: Nested Miller (inner Cc1 around stage 2-3, outer Cc2 around all)
+*   Stage 1: PMOS diff pair + NMOS mirror load (high gain into high-Z)
+*   Stage 2: Split complementary CS amps driving output gates
+*     - M6a (NMOS CS): drives gp (PMOS output gate)
+*     - M6b (PMOS CS): drives gn (NMOS output gate)
+*   Output: Class-AB push-pull (M9 PMOS + M10 NMOS)
 
 * ===== Supply =====
 Vdd vdd 0 DC 15
@@ -25,42 +25,36 @@ M1 d1 inp tail vdd PMOS W={W1}u L={L1}u
 M2 d2 inm tail vdd PMOS W={W1}u L={L1}u
 M3 d1 d1 vss vss NMOS W={W3}u L={L3}u
 M4 d2 d1 vss vss NMOS W={W3}u L={L3}u
-M5 tail pbias1 vdd vdd PMOS W={W5}u L={L5}u
+M5 tail pbias vdd vdd PMOS W={W5}u L={L5}u
 
-* ===== Second stage: NMOS CS amplifier =====
-M6 s2out d2 vss vss NMOS W={W6}u L={L6}u
-M7 s2out pbias2 vdd vdd PMOS W={W7}u L={L7}u
+* ===== Second stage A: NMOS CS drives PMOS output gate =====
+M6a gp d2 vss vss NMOS W={W6a}u L={L6a}u
+M8a gp pbias2 vdd vdd PMOS W={W8a}u L={L8a}u
 
-* ===== Third stage: Split complementary CS for class-AB drive =====
-* NMOS CS drives PMOS output gate
-M8a gp s2out vss vss NMOS W={W8a}u L={L8a}u
-M9a gp pbias2 vdd vdd PMOS W={W9a}u L={L9a}u
-* PMOS CS drives NMOS output gate
-M8b gn s2out vdd vdd PMOS W={W8b}u L={L8b}u
-M9b gn nbias3 vss vss NMOS W={W9b}u L={L9b}u
+* ===== Second stage B: PMOS CS drives NMOS output gate =====
+M6b gn d2 vdd vdd PMOS W={W6b}u L={L6b}u
+M8b gn nbias3 vss vss NMOS W={W8b}u L={L8b}u
 
 * ===== Class-AB output stage =====
-M11 out gp vdd vdd PMOS W={W11}u L={L11}u
-M12 out gn vss vss NMOS W={W12}u L={L12}u
+M9 out gp vdd vdd PMOS W={W9}u L={L9}u
+M10 out gn vss vss NMOS W={W10}u L={L10}u
 
-* ===== Nested Miller compensation =====
-* Inner loop: around stage 3 (from output to stage 3 input s2out)
-Cc1a gp cmp1a {Cc1a}
-Rc1a cmp1a out {Rc1a}
-Cc1b gn cmp1b {Cc1b}
-Rc1b cmp1b out {Rc1b}
-* Outer loop: from output back to stage 2 output (s2out)
-Cc2 s2out cmp2 {Cc2}
-Rc2 cmp2 out {Rc2}
+* ===== Miller compensation =====
+* From output to stage 2A (gp node)
+Cc1 gp comp1 {Cc1}
+Rc1 comp1 out {Rc1}
+* From output to stage 2B (gn node)
+Cc2 gn comp2 {Cc2}
+Rc2 comp2 out {Rc2}
 
 * ===== Bias generation =====
 * PMOS tail current for diff pair
-Ibias1 pbias1 vss {Ibias1}
-Mbias1 pbias1 pbias1 vdd vdd PMOS W={Wbias1}u L={Lbias1}u
-* PMOS current source bias (for M7, M9a loads)
+Ibias1 pbias vss {Ibias1}
+Mbias1 pbias pbias vdd vdd PMOS W={Wbias1}u L={Lbias1}u
+* PMOS current source bias (for M8a load)
 Ibias2 pbias2 vss {Ibias2}
 Mbias2 pbias2 pbias2 vdd vdd PMOS W={Wbias2}u L={Lbias2}u
-* NMOS current source bias (for M9b load)
+* NMOS current source bias (for M8b load)
 Ibias3 vdd nbias3 {Ibias3}
 Mbias3 nbias3 nbias3 vss vss NMOS W={Wbias3}u L={Lbias3}u
 
@@ -80,10 +74,10 @@ op
 * Bias checks
 let vgs1 = v(inp) - v(tail)
 let vds1 = v(d1) - v(tail)
-let vgs5 = v(pbias1) - v(vdd)
+let vgs5 = v(pbias) - v(vdd)
 let vds5 = v(tail) - v(vdd)
 let vgs6 = v(d2) - v(vss)
-let vds6 = v(s2out) - v(vss)
+let vds6 = v(gp) - v(vss)
 let vgs7 = v(gn) - v(vss)
 let vds7 = v(out) - v(vss)
 
