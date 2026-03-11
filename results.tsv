@@ -19,3 +19,4 @@ ba71cb6	1.00	class-AB-push-pull	6/6	Run 12 (re-run): 186dB gain, 41.4MHz GBW, 29
 a27f6d9	1.00	class-AB-push-pull	6/6	Run 13: 175dB gain, 20.5MHz GBW, 29.7V swing, 176mW, 183dB CMRR, cost -7.84 BEST
 2d5736b	1.00	class-AB-push-pull	6/6	Run 14: 176dB gain, 24.8MHz GBW, 29.6V swing, 266mW, 176dB CMRR, cost -7.58
 5232811	1.00	class-AB-push-pull	6/6	Run 15: 202dB gain, 20.5MHz GBW, 29.8V swing, 161mW, 199dB CMRR, cost -8.38 BEST (2841 iter)
+bbfc69f	1.00	class-AB-push-pull	6/6	Run 16: 163dB gain, 30MHz GBW, 29.2V swing, 235mW, cost -7.38 (990 iter)
