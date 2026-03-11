@@ -14,3 +14,4 @@ f9780a7	1.00	class-AB-push-pull	6/6	Run 5: 167dB gain, 34.3MHz GBW, 28.8V swing,
 9e68111	1.00	class-AB-push-pull	6/6	Run 8 (wider L/Ibias): 188dB gain, 25.9MHz GBW, 29.5V swing, 291mW, 188dB CMRR, cost 292.27
 a204c39	1.00	class-AB-push-pull	6/6	Run 9 (bias fix): 174dB gain, 26.5MHz GBW, 29.6V swing, 307mW, 168dB CMRR, cost -7.41
 d31bae2	1.00	class-AB-push-pull	6/6	Run 10 (tight Ibias): 177dB gain, 20MHz GBW, 29.6V swing, 257mW, 179dB CMRR, cost -7.63 BEST
+b6ad1c3	0.98	class-AB-push-pull	3/6	Run 11 (too-wide ranges): 99dB gain, 71MHz GBW, 23.7V swing, 539mW — FAILED, DE premature convergence
