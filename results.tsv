@@ -8,3 +8,4 @@ a4c5330	1.00	class-AB-push-pull	6/6	Run 4: 180dB gain, 23.5MHz GBW, 29.5V swing,
 9eac376	0.68	BJT-input-class-AB	4/6	BJT NPN input pair: metric ~94.6, killed early — worse than MOSFET (292)
 bc47a44	1.00	three-stage-nested-Miller	6/6	Three-stage: 133dB gain, 26.3MHz GBW, 25.2V swing, 342mW, 129dB CMRR
 f9780a7	1.00	class-AB-push-pull	6/6	Run 5: 167dB gain, 34.3MHz GBW, 28.8V swing, 326mW, 174dB CMRR
+0f72292	0.85	cascode-input-class-AB	3/6	Cascode input+mirror: 57dB gain, 20MHz GBW, 18V swing, 345mW, 61dB CMRR — FAILED
