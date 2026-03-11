@@ -238,25 +238,28 @@ def compute_cost(measurements: Dict[str, float], specs: Dict) -> float:
                 gap = (measured - target_val) / max(abs(target_val), 1e-12)
                 cost += weight * gap ** 2 * 500
 
-    # Bias point penalties (NMOS saturation check)
+    # Bias point penalties — check each transistor with correct model thresholds
     vto_n = 0.7
     vto_p = -0.7
-    for suffix in ["1", "5", "7"]:
+
+    # PMOS devices (M1 diff pair, M5 tail): VGS must be < VTO_p, VDS < VGS - VTO_p for saturation
+    for suffix in ["1", "5"]:
         vgs = measurements.get(f"RESULT_VGS{suffix}")
         vds = measurements.get(f"RESULT_VDS{suffix}")
         if vgs is not None and vds is not None:
-            if vgs < vto_n:
+            if vgs > vto_p:       # not turned on
                 cost += 100
-            elif vds < vgs - vto_n:
+            elif vds > vgs - vto_p:  # in triode (not saturated)
                 cost += 50
 
-    for suffix in ["6"]:
+    # NMOS devices (M6a 2nd stage, M7/M10 output): VGS must be > VTO_n, VDS > VGS - VTO_n for saturation
+    for suffix in ["6", "7"]:
         vgs = measurements.get(f"RESULT_VGS{suffix}")
         vds = measurements.get(f"RESULT_VDS{suffix}")
         if vgs is not None and vds is not None:
-            if vgs > vto_p:
+            if vgs < vto_n:       # not turned on
                 cost += 100
-            elif vds > vgs - vto_p:
+            elif vds < vgs - vto_n:  # in triode (not saturated)
                 cost += 50
 
     return cost
