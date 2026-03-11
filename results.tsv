@@ -41,3 +41,4 @@ a4a8e75	1.00	class-AB-push-pull	6/6	Run 33: 169dB gain, 21.1MHz GBW, 29.6V swing
 8177a39	1.00	class-AB-push-pull	6/6	Run 35: 186dB gain, 22MHz GBW, 29.7V swing, 241mW, 183dB CMRR, cost -7.85
 9775d12	0.96	class-AB-push-pull	4/6	Run 36: 91dB gain, 16.9MHz GBW, 20.6V swing, 379mW, 104dB CMRR — premature (268 iter)
 1a386b2	1.00	class-AB-push-pull	6/6	Run 37: 165dB gain, 20.9MHz GBW, 29V swing, 224mW, 169dB CMRR, cost -7.43
+33d7e0b	1.00	class-AB-push-pull	6/6	Run 38: 196dB gain, 20.2MHz GBW, 29.4V swing, 216mW, 194dB CMRR, cost -8.10 (1790 iter)
