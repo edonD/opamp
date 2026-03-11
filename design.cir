@@ -1,9 +1,9 @@
-* High-Performance Op-Amp — Two-Stage + Class-AB Push-Pull Output
+* High-Performance Op-Amp — BJT Input + Class-AB Push-Pull Output
 * ±15V dual supply, 600Ω load
 * All component values optimized by DE. Do not hardcode values.
 *
 * Architecture:
-*   Stage 1: PMOS diff pair + NMOS mirror load (high gain into high-Z)
+*   Stage 1: NPN BJT diff pair + PMOS mirror load + NMOS tail (high gm → high GBW)
 *   Stage 2: Split complementary CS amps driving output gates
 *     - M6a (NMOS CS): drives gp (PMOS output gate)
 *     - M6b (PMOS CS): drives gn (NMOS output gate)
@@ -20,12 +20,12 @@ Vcm cm_sig 0 DC 0 AC 0
 Einp inp 0 POLY(2) diff_sig 0 cm_sig 0 0 1 1
 Einm inm 0 POLY(2) diff_sig 0 cm_sig 0 0 -1 1
 
-* ===== First stage: PMOS diff pair + NMOS mirror =====
-M1 d1 inp tail vdd PMOS W={W1}u L={L1}u
-M2 d2 inm tail vdd PMOS W={W1}u L={L1}u
-M3 d1 d1 vss vss NMOS W={W3}u L={L3}u
-M4 d2 d1 vss vss NMOS W={W3}u L={L3}u
-M5 tail pbias vdd vdd PMOS W={W5}u L={L5}u
+* ===== First stage: NPN diff pair + PMOS mirror =====
+Q1 d1 inp tail NPN_MOD {AQ1}
+Q2 d2 inm tail NPN_MOD {AQ1}
+M3 d1 d1 vdd vdd PMOS W={W3}u L={L3}u
+M4 d2 d1 vdd vdd PMOS W={W3}u L={L3}u
+M5 tail nbias1 vss vss NMOS W={W5}u L={L5}u
 
 * ===== Second stage A: NMOS CS drives PMOS output gate =====
 M6a gp d2 vss vss NMOS W={W6a}u L={L6a}u
@@ -48,9 +48,9 @@ Cc2 gn comp2 {Cc2}
 Rc2 comp2 out {Rc2}
 
 * ===== Bias generation =====
-* PMOS tail current for diff pair
-Ibias1 pbias vss {Ibias1}
-Mbias1 pbias pbias vdd vdd PMOS W={Wbias1}u L={Lbias1}u
+* NMOS tail current for diff pair
+Ibias1 vdd nbias1 {Ibias1}
+Mbias1 nbias1 nbias1 vss vss NMOS W={Wbias1}u L={Lbias1}u
 * PMOS current source bias (for M8a load)
 Ibias2 pbias2 vss {Ibias2}
 Mbias2 pbias2 pbias2 vdd vdd PMOS W={Wbias2}u L={Lbias2}u
@@ -62,9 +62,10 @@ Mbias3 nbias3 nbias3 vss vss NMOS W={Wbias3}u L={Lbias3}u
 RL out 0 600
 CL out 0 100p
 
-* ===== Models (Level 1 CMOS) =====
+* ===== Models =====
 .model NMOS NMOS (LEVEL=1 VTO=0.7 KP=110u GAMMA=0.4 LAMBDA=0.04 PHI=0.65 TOX=9e-9)
 .model PMOS PMOS (LEVEL=1 VTO=-0.7 KP=50u GAMMA=0.57 LAMBDA=0.05 PHI=0.65 TOX=9e-9)
+.model NPN_MOD NPN (BF=200 IS=1e-15 VAF=100 RB=100 RC=10 RE=1 CJE=1p CJC=0.5p TF=0.3n TR=5n)
 
 * ===== Analysis =====
 .control
@@ -72,17 +73,17 @@ CL out 0 100p
 op
 
 * Bias checks
-let vgs1 = v(inp) - v(tail)
-let vds1 = v(d1) - v(tail)
-let vgs5 = v(pbias) - v(vdd)
-let vds5 = v(tail) - v(vdd)
+let vbe1 = v(inp) - v(tail)
+let vce1 = v(d1) - v(tail)
+let vgs5 = v(nbias1) - v(vss)
+let vds5 = v(tail) - v(vss)
 let vgs6 = v(d2) - v(vss)
 let vds6 = v(gp) - v(vss)
 let vgs7 = v(gn) - v(vss)
 let vds7 = v(out) - v(vss)
 
-echo "RESULT_VGS1" $&vgs1
-echo "RESULT_VDS1" $&vds1
+echo "RESULT_VGS1" $&vbe1
+echo "RESULT_VDS1" $&vce1
 echo "RESULT_VGS5" $&vgs5
 echo "RESULT_VDS5" $&vds5
 echo "RESULT_VGS6" $&vgs6

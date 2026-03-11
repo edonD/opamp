@@ -1,6 +1,5 @@
 name,min,max,scale
-W1,1,500,log
-L1,0.5,10,log
+AQ1,1,100,log
 W3,1,500,log
 L3,0.5,10,log
 W5,1,500,log
