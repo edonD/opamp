@@ -10,3 +10,4 @@ bc47a44	1.00	three-stage-nested-Miller	6/6	Three-stage: 133dB gain, 26.3MHz GBW,
 f9780a7	1.00	class-AB-push-pull	6/6	Run 5: 167dB gain, 34.3MHz GBW, 28.8V swing, 326mW, 174dB CMRR
 0f72292	0.85	cascode-input-class-AB	3/6	Cascode input+mirror: 57dB gain, 20MHz GBW, 18V swing, 345mW, 61dB CMRR — FAILED
 70fc87e	1.00	class-AB-push-pull	6/6	Run 6 (tuned ranges): 175dB gain, 20.5MHz GBW, 28.7V swing, 253mW, 184dB CMRR
+6245036	1.00	class-AB-push-pull	6/6	Run 7 (extended W/L): 181dB gain, 33.9MHz GBW, 29.6V swing, 217mW, 176dB CMRR — BEST cost 292.18
